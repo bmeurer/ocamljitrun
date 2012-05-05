@@ -1,0 +1,50 @@
+#! /usr/bin/env pyguis-scripter
+# a -*- python -*- script for GUIS
+##                                                          
+##                          Objective Caml                           
+##                                                                   
+##     Basile Starynkevitch, projet Cristal, INRIA Rocquencourt      
+##                                                                   
+## Copyright 2004 Institut National de Recherche en Informatique et  
+## en Automatique.  All rights reserved.  This file is distributed   
+## under the terms of the GNU Library General Public License, with   
+## the special exception on linking described in file ../LICENSE.    
+
+# this is using GUIS - see http://starynkevitch.net/Basile/guisdoc.html
+# cvsid $Id: dbggui,v 1.3 2004-04-24 21:39:15 basile Exp $
+
+import gtk
+import guis
+
+
+def end_cb(*args):
+    # guis_send just sends back a string (without any encoding)
+    guis.guis_send("END")
+
+
+def start(jitpath,bytepath,jitpid):
+    global window
+    window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+    window.set_title("OcamlJit debugger")
+    vbox = gtk.VBox(gtk.FALSE,2)
+    window.add(vbox)
+    window.connect("destroy", end_cb)
+    window.set_border_width(10)
+    label = gtk.Label()
+    label.set_markup('<b>OcamlJitRun debuuger</b>\n'
+                     + 'jit path=<tt>'
+                     + guis.xml_coded(jitpath)
+                     + '</tt>\n'
+                     + 'byte path=<tt>'
+                     + guis.xml_coded(bytepath)
+                     + '</tt>\n<i>pid ' + jitpid + '</i>')
+    vbox.add(label)
+    buthbox = gtk.HBox(gtk.FALSE,3)
+    vbox.add(buthbox)
+    window.show_all()
+
+
+#### 
+guis.main_loop_in_script(gtk.TRUE)
+gtk.main()
+# eof $Id: dbggui,v 1.3 2004-04-24 21:39:15 basile Exp $

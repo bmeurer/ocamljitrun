@@ -1,0 +1,8 @@
+*.cmx
+*.cmi
+*.o
+*.a
+*.prev
+dbgjit
+*.annot
+*~

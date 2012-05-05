@@ -1,0 +1,144 @@
+ file ocamljitrun/README
+ cvsid $Id: README,v 1.10 2004-07-10 20:00:34 basile Exp $
+
+                           Objective Caml                            
+                                                                     
+      Basile Starynkevitch, projet Cristal, INRIA Rocquencourt       
+                                                                     
+  Copyright 2004 Institut National de Recherche en Informatique et   
+  en Automatique.  All rights reserved.  This file is distributed    
+  under the terms of the GNU Library General Public License, with    
+  the special exception on linking described in file ../LICENSE.     
+                                                                     
+
+See http://cristal.inria.fr/~starynke/ocamljit.html 
+
+This directory provides a just in time translating version of the
+Ocaml bytecode interpreter. In principle, it should provide you with
+an ocamljitrun executable which replaces the usual ocamlrun executable
+(the standard Ocaml bytecode interpreter), and translate the bytecode
+(incrementally, ie in a Just In Time fashion) into machine code which
+usually runs faster.
+
+______________________________________________________________________
+
+     Prerequisites
+     =============
+
+You need a recent Ocaml source directory (i.e. a CVS snapshot newer
+than april 26th 2004), or perhaps the (future) 3.08 version. You
+should get it on http://caml.inria.fr/ (and follow indications about
+the CVS repository). The Ocaml release 3.07 won't work here.
+
+You need a recent GNU lightning library. Lightning is a library
+providing C macros to generate machine code (on x86, PowerPC, Sparcv9,
+32 bits machines) at runtime. You need a CVS snapshot of GNU lightning
+from http://savannah.gnu.org/ newer than july 8th 2004.
+
+You need GNU make to build this ocamljitrun. It is preferable to have
+the GNU bash shell.
+
+Both your Ocaml and your lightning should have been successfully built
+and installed.
+
+For Ocaml, you should probably (read the detailed instructions in
+OCaml source tree to be sure)
+
+    cd /path/to/ocaml/latest/sources/
+    ./configure
+    make world
+    make opt
+    make install
+
+
+For GNU lightning (read the instructions in GNU lightning source tree
+to be sure)
+
+    cd /path/to/lightning/latest/sources/
+    ./configure
+    make all
+    make install
+
+
+You are expected to have both ocaml & lightning installed, and to keep
+their source trees for installation of ocamljitrun
+
+
+
+
+    Configuration and installation
+    ==============================
+
+Be sure to have compiled and installed both Ocaml & lightning
+before. You need the Ocaml source tree to compile ocamljitrun.
+
+You can either configure manually Ocamljit, or (in most simple cases),
+configure it using the ConfigureJit shell script.
+
+Automatic configuration:
+- - - - - - - - - - - -
+
+Run the ConfigureJit and answer (interactively) to
+questions. Alternatively, configure manually as below.
+
+
+Manual configuration:
+- - - - - - - - - - -
+edit a _jitconfig.mk file containing (for GNU make) the following definitions
+OCAML_TOPDIR=/path/to/ocaml/sources
+LIGHTNING_INCLUDEDIR=/path/to/lightning/include
+
+for example, on my home machine, I have
+OCAML_TOPDIR=/usr/src/Lang/ocaml/
+LIGHTNING_INCLUDEDIR=/usr/local/include/
+
+Note that the include directory for GNU lightning is the one
+containing <lightning.h> - hence it is usually /usr/local/include/ not
+/usr/local/include/lightning/ (which contains asm.h etc...)
+
+
+Installation:
+- - - - - - -
+
+If you don't have a good ptrace system call and a <sys/ptrace.h>
+include file (like on Solaris2.9), add -DNO_PTRACE to the compile
+flags (eg by editing the Makefile)
+
+Once you configured as above, just invoke GNU make, usually thru the
+gmake or (on Linux and other GNU systems) simply make.
+
+You get many warnings with gcc, like "value computed is not used" -
+this is related to lightning...
+
+Then copy ocamljitrun to some bin/ directory in your path (or run sudo
+make install).
+
+ocamljitrun should be a plug-in replacement of ocamlrun. However, on
+very short programs (e.g. ocamlc compiling a small *.ml file) it is
+actually slower than ocamlrun, because of the overhead for machine
+code generation (which is, as the JIT acronym suggests, performed
+incrementally by ocamljitrun). On programs running more than a few
+seconds, ocamljitrun may be up to two times faster on x86.
+
+Known bugs: 
+=========== 
+
+compiles and runs ok on x86 & PowerPC
+SWITCH bug fixed in byterun/callbacks.c >= 1.47
+callback bug fixed in byterun/callbacks.c cvs.rev >= 1.22
+
+________________________________________________________________
+
+Please send comments and feedback by email to basile dot starynkevitch
+at inria dot fr or basile at starynkevitch dot net
+
+
+Changes:
+
+release fetnat july 10th 2004.
+
+initial release april 19th 2004.
+
+end of $Id: README,v 1.10 2004-07-10 20:00:34 basile Exp $
+
+

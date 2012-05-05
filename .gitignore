@@ -1,0 +1,6 @@
+_*.mk
+*.o
+ocamljitrun
+ocamljitrund
+testcallb
+_*

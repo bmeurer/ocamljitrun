@@ -1,0 +1,155 @@
+#! /bin/bash
+# cvsid $Id: ConfigureJit,v 1.4 2004-04-28 11:22:04 basile Exp $
+# file ocamljitrun/ConfigureJit
+
+verbose=""
+ocamlsrcdir=""
+lightincdir=""
+backupdir=""
+confile="_jitconfig.mk"
+
+function whereinfo() {
+    echo "Ocaml source tree needed newer than april 16th 2004" >&2
+    echo get from CVS or future release '3.08?' >&2
+    echo "(Ocaml release 3.07 or earlier cannot work)" >&2
+    echo "see http://caml.inria.fr/ for more" >&2
+    echo >&2
+    echo "GNU lightning needed newer than april 16th 2004" >&2
+    echo "get from CVS or release 1.2" >&2
+    echo "(Lightning release 1.1.2 or earlier cannot work)" >&2
+    echo "see http://savannah.gnu.org/projects/lightning" >&2
+    echo >&2
+}
+
+function usage() {
+    echo usage: $0 >&2
+    echo "  -v #verbose" >&2
+    echo "  -h #help" >&2
+    echo "  -O ocamlsrcdir #Ocaml source directory" >&2
+    echo "  -L lightincdir #Lightning include directory (with lightning.h)" >&2
+    echo "  -C configfile #generated conf.file $confile" >&2
+    echo "  -B backupdir #for make tests" >&2
+    echo >&2
+    echo "Requirements:" >&2
+    whereinfo
+    exit $*
+}
+
+function verbecho() {
+   if [ -n "$verbose" ]; then
+       echo $*
+   fi
+}
+
+while getopts "vhO:L:C:B:" Option; do
+case $Option in
+    v) verbose="-v";;
+    h) usage 0;;
+    O) ocamlsrcdir=$OPTARG;;
+    L) lightincdir=$OPTARG;;
+    B) backupdir=$OPTARG;;
+    *) usage 1;;
+esac
+done
+
+if [ -z "$ocamlsrcdir" ]; then
+   echo Enter path of Ocaml source tree
+   read ocamlsrcdir
+fi
+
+if [ -z "$lightincdir" ]; then
+    for d in  /usr/local/include /usr/include ; do
+	if [ -f "$d/lightning.h" ]; then
+	    lightincdir=$d;
+	    break
+	fi
+    done
+fi
+
+if [ -z "$lightincdir" ]; then
+    echo Enter path of Lighning include dir "(containing <lightning.h>)"
+    read lightincdir
+fi
+
+verbecho checking ocaml source directory $ocamlsrcdir
+
+interp="$ocamlsrcdir/byterun/interp.c"
+callback="$ocamlsrcdir/byterun/callback.c"
+if [ ! -f "$interp" -o ! -f "$callback" ]; then
+    echo cannot find byterun/interp.c and byterun/callback.c ... >&2
+    echo ... in ocaml source directory $ocamlsrcdir >&2
+    whereinfo
+    exit 1
+fi
+
+### check for caml_interprete and caml_release_bytecode in interp.c
+
+verbecho examining $interp file 
+
+if grep -q caml_interprete $interp; then
+    verbecho found caml_interprete in $interp
+else
+    echo cannot find caml_interprete in $interp >&2
+    whereinfo
+    exit 1
+fi
+
+if grep -q caml_release_bytecode "$interp"; then
+    verbecho found caml_release_bytecode in $interp
+else
+    echo cannot find caml_release_bytecode in $interp >&2
+    echo "(maybe Ocaml source too old)" >&2
+    whereinfo
+    exit 1
+fi
+
+## check for local_callback_code and caml_release_bytecode in callbacks.c
+if grep -q local_callback_code "$callback"; then
+    verbecho found local_callback_code in $callback
+else
+    echo cannot find local_callback_code in $callback >&2
+    echo "(maybe Ocaml source too old)" >&2
+    whereinfo
+    exit 1
+fi
+
+if grep -q caml_release_bytecode "$callback"; then
+    verbecho found caml_release_bytecode in $callback
+else
+    echo cannot find caml_release_bytecode in $callback
+    echo "(maybe Ocaml source too old)" >&2
+    whereinfo
+    exit 1
+fi
+
+
+
+#### checking for GNU lightning include directory
+if [ -f "$lightincdir/lightning.h" -a -f "$lightincdir/lightning/asm.h" ]; then
+    verbecho checked lighning include dir $lightincdir
+else
+    echo Directory $lightincdir without lightning.h and lightning/asm.h >&2
+    whereinfo
+    exit 1
+fi
+
+if [ -f "$confile" ]; then
+    mv -f "$confile" "$confile~"
+fi
+
+verbecho generating configuration file $confile
+
+date "+## $confile generated file on %D at %T" > $confile
+echo "OCAML_TOPDIR=$ocamlsrcdir" >> $confile
+echo "LIGHTNING_INCLUDEDIR=$lightincdir" >> $confile
+if [ -n "$backupdir" -a -d "$backupdir" ] ; then
+  echo "OCAMLJITBACKUPDIR=$backupdir" >> $confile
+fi
+echo "#end of generated $confile" >> $confile
+
+## should add some compilation tests
+
+verbecho ConfigureJit ended successfully
+exit 0
+
+#eof $Id: ConfigureJit,v 1.4 2004-04-28 11:22:04 basile Exp $
